@@ -1,32 +1,33 @@
-# Minhas Consultas
+# Organizador de Consultas
 
-Aplicativo simples para cadastrar e organizar consultas.
+Aplicativo didático feito com Flutter e Dart para cadastrar e organizar consultas.
 
 ## Funcionalidades
 
-- Criar conta, entrar e sair.
-- Cadastrar, visualizar, editar e excluir consultas.
-- Validar campos básicos.
-- Salvar dados localmente no aparelho.
+- Cadastro local de usuário, login e logout.
+- Cadastro de consultas.
+- Listagem das consultas cadastradas.
+- Edição e exclusão de consultas.
+- Validação dos campos obrigatórios.
 
 ## Tecnologias
 
 - Flutter
 - Dart
-- shared_preferences
+- `shared_preferences` para salvar os dados localmente no dispositivo.
 
-## Como executar
+## Estrutura principal
 
-1. Instale o Flutter.
-2. Baixe ou clone este repositório.
-3. Execute `flutter pub get`.
-4. Execute `flutter run`.
-
-## Como funciona
-
-O `AuthService` cuida do cadastro e login local.
-O `ConsultaService` salva e lê as consultas.
-Os dados ficam no aparelho usando `shared_preferences`.
-
-Esta versão é apenas didática: não use para guardar senhas ou dados reais
-de pacientes. Os dados não são sincronizados entre aparelhos.
+```text
+lib/
+├── main.dart
+├── models/
+│   └── consulta.dart
+├── services/
+│   ├── auth_service.dart
+│   └── consulta_service.dart
+└── screens/
+    ├── login_screen.dart
+    ├── cadastro_screen.dart
+    ├── home_screen.dart
+    └── formulario_consulta_screen.dart
