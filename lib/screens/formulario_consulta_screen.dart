@@ -4,112 +4,51 @@ import '../services/consulta_service.dart';
 
 class FormularioConsultaScreen extends StatefulWidget {
   final Consulta? consulta;
-
   const FormularioConsultaScreen({super.key, this.consulta});
-
   @override
-  State<FormularioConsultaScreen> createState() =>
-      _FormularioConsultaScreenState();
+  State<FormularioConsultaScreen> createState() => _FormularioConsultaScreenState();
 }
 
-class _FormularioConsultaScreenState
-    extends State<FormularioConsultaScreen> {
-  final _paciente = TextEditingController();
-  final _data = TextEditingController();
-  final _horario = TextEditingController();
-  final _motivo = TextEditingController();
+class _FormularioConsultaScreenState extends State<FormularioConsultaScreen> {
+  final paciente = TextEditingController();
+  final data = TextEditingController();
+  final horario = TextEditingController();
+  final motivo = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-
-    final consulta = widget.consulta;
-    if (consulta != null) {
-      _paciente.text = consulta.paciente;
-      _data.text = consulta.data;
-      _horario.text = consulta.horario;
-      _motivo.text = consulta.motivo;
-    }
+    final item = widget.consulta;
+    if (item != null) { paciente.text = item.paciente; data.text = item.data; horario.text = item.horario; motivo.text = item.motivo; }
   }
 
-  Future<void> _salvar() async {
-    if (_paciente.text.trim().isEmpty ||
-        _data.text.trim().isEmpty ||
-        _horario.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha paciente, data e horário.')),
-      );
+  Future<void> salvar() async {
+    if (paciente.text.trim().isEmpty || data.text.trim().isEmpty || horario.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha paciente, data e horário.')));
       return;
     }
-
-    final consulta = Consulta(
-      id: widget.consulta?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      paciente: _paciente.text.trim(),
-      data: _data.text.trim(),
-      horario: _horario.text.trim(),
-      motivo: _motivo.text.trim(),
+    final item = Consulta(
+      id: widget.consulta?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      paciente: paciente.text.trim(), data: data.text.trim(), horario: horario.text.trim(), motivo: motivo.text.trim(),
     );
-
-    if (widget.consulta == null) {
-      await ConsultaService.adicionar(consulta);
-    } else {
-      await ConsultaService.atualizar(consulta);
-    }
-
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (widget.consulta == null) { await ConsultaService.adicionar(item); }
+    else { await ConsultaService.atualizar(item); }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
-  void dispose() {
-    _paciente.dispose();
-    _data.dispose();
-    _horario.dispose();
-    _motivo.dispose();
-    super.dispose();
-  }
+  void dispose() { paciente.dispose(); data.dispose(); horario.dispose(); motivo.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) {
-    final editando = widget.consulta != null;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(editando ? 'Editar consulta' : 'Nova consulta'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          TextField(
-            controller: _paciente,
-            decoration: const InputDecoration(labelText: 'Nome do paciente'),
-          ),
-          TextField(
-            controller: _data,
-            decoration: const InputDecoration(
-              labelText: 'Data (ex.: 20/11/2026)',
-            ),
-          ),
-          TextField(
-            controller: _horario,
-            decoration: const InputDecoration(
-              labelText: 'Horário (ex.: 14:30)',
-            ),
-          ),
-          TextField(
-            controller: _motivo,
-            decoration: const InputDecoration(labelText: 'Motivo (opcional)'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _salvar,
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(widget.consulta == null ? 'Nova consulta' : 'Editar consulta')),
+    body: ListView(padding: const EdgeInsets.all(20), children: [
+      TextField(controller: paciente, decoration: const InputDecoration(labelText: 'Nome do paciente')),
+      TextField(controller: data, decoration: const InputDecoration(labelText: 'Data (ex.: 20/11/2026)')),
+      TextField(controller: horario, decoration: const InputDecoration(labelText: 'Horário (ex.: 14:30)')),
+      TextField(controller: motivo, decoration: const InputDecoration(labelText: 'Motivo (opcional)')),
+      const SizedBox(height: 20),
+      ElevatedButton(onPressed: salvar, child: const Text('Salvar')),
+    ]),
+  );
 }
-

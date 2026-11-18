@@ -7,105 +7,54 @@ import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<Consulta>> _consultas;
-
+  late Future<List<Consulta>> consultas;
   @override
-  void initState() {
-    super.initState();
-    _carregarConsultas();
+  void initState() { super.initState(); carregar(); }
+  void carregar() { consultas = ConsultaService.listar(); }
+
+  Future<void> abrirFormulario([Consulta? consulta]) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => FormularioConsultaScreen(consulta: consulta)));
+    if (mounted) setState(carregar);
   }
 
-  void _carregarConsultas() {
-    _consultas = ConsultaService.listar();
-  }
-
-  Future<void> _abrirFormulario([Consulta? consulta]) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => FormularioConsultaScreen(consulta: consulta),
-      ),
-    );
-
-    setState(_carregarConsultas);
-  }
-
-  Future<void> _excluir(String id) async {
+  Future<void> excluir(String id) async {
     await ConsultaService.excluir(id);
-    setState(_carregarConsultas);
+    if (mounted) setState(carregar);
   }
 
-  Future<void> _sair() async {
+  Future<void> sair() async {
     await AuthService.sair();
-
     if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (rota) => false,
-    );
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Minhas consultas'),
-        actions: [
-          IconButton(
-            onPressed: _sair,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
-          ),
-        ],
-      ),
-      body: FutureBuilder<List<Consulta>>(
-        future: _consultas,
-        builder: (context, resultado) {
-          if (!resultado.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final consultas = resultado.data!;
-
-          if (consultas.isEmpty) {
-            return const Center(child: Text('Nenhuma consulta cadastrada.'));
-          }
-
-          return ListView.builder(
-            itemCount: consultas.length,
-            itemBuilder: (context, indice) {
-              final consulta = consultas[indice];
-
-              return ListTile(
-                title: Text(consulta.paciente),
-                subtitle: Text(
-                  '<LaTex>{consulta.data} às</LaTex>{consulta.horario}\n${consulta.motivo}',
-                ),
-                isThreeLine: true,
-                onTap: () => _abrirFormulario(consulta),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  tooltip: 'Excluir',
-                  onPressed: () => _excluir(consulta.id),
-                ),
-              );
-            },
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Minhas consultas'), actions: [IconButton(onPressed: sair, icon: const Icon(Icons.logout), tooltip: 'Sair')]),
+    body: FutureBuilder<List<Consulta>>(
+      future: consultas,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError) return const Center(child: Text('Erro ao carregar consultas.'));
+        final lista = snapshot.data ?? [];
+        if (lista.isEmpty) return const Center(child: Text('Nenhuma consulta cadastrada. Toque em + para adicionar.'));
+        return ListView.builder(itemCount: lista.length, itemBuilder: (context, i) {
+          final item = lista[i];
+          return ListTile(
+            title: Text(item.paciente),
+            subtitle: Text('${item.data} às ${item.horario}\n${item.motivo}'),
+            isThreeLine: true,
+            onTap: () => abrirFormulario(item),
+            trailing: IconButton(icon: const Icon(Icons.delete_outline), tooltip: 'Excluir', onPressed: () => excluir(item.id)),
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _abrirFormulario(),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
+        });
+      },
+    ),
+    floatingActionButton: FloatingActionButton(onPressed: () => abrirFormulario(), child: const Icon(Icons.add)),
+  );
 }
-

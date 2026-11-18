@@ -5,89 +5,36 @@ import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _email = TextEditingController();
-  final _senha = TextEditingController();
+  final email = TextEditingController();
+  final senha = TextEditingController();
 
-  Future<void> _entrar() async {
-    if (_email.text.trim().isEmpty || _senha.text.isEmpty) {
-      _mostrarMensagem('Preencha o e-mail e a senha.');
-      return;
-    }
-
-    final erro = await AuthService.entrar(
-      _email.text.trim(),
-      _senha.text,
-    );
-
+  Future<void> entrar() async {
+    if (email.text.trim().isEmpty || senha.text.isEmpty) { mensagem('Preencha e-mail e senha.'); return; }
+    final erro = await AuthService.entrar(email.text.trim(), senha.text);
     if (!mounted) return;
-
-    if (erro != null) {
-      _mostrarMensagem(erro);
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    }
+    if (erro != null) { mensagem(erro); return; }
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
   }
 
-  void _mostrarMensagem(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensagem)),
-    );
-  }
+  void mensagem(String texto) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texto)));
 
   @override
-  void dispose() {
-    _email.dispose();
-    _senha.dispose();
-    super.dispose();
-  }
+  void dispose() { email.dispose(); senha.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Entrar')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: _email,
-              decoration: const InputDecoration(labelText: 'E-mail'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            TextField(
-              controller: _senha,
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _entrar,
-              child: const Text('Entrar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CadastroScreen(),
-                  ),
-                );
-              },
-              child: const Text('Criar uma conta'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Entrar')),
+    body: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+      TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'E-mail')),
+      TextField(controller: senha, obscureText: true, decoration: const InputDecoration(labelText: 'Senha')),
+      const SizedBox(height: 20),
+      ElevatedButton(onPressed: entrar, child: const Text('Entrar')),
+      TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CadastroScreen())), child: const Text('Criar uma conta')),
+    ])),
+  );
 }
-
